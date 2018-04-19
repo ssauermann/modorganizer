@@ -39,6 +39,7 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QListWidgetItem>
@@ -50,6 +51,7 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <QStringList>
 #include <QVariantMap>
 #include <QLabel>
+#include <QScreen>
 
 #include <Qt> // for Qt::UserRole, etc
 #include <QtDebug> // for qDebug, qWarning
@@ -586,7 +588,9 @@ void Settings::resetDialogs()
 
 void Settings::query(PluginContainer *pluginContainer, QWidget *parent)
 {
+  qreal scale = QGuiApplication::primaryScreen()->logicalDotsPerInch() / qreal(96);
   SettingsDialog dialog(pluginContainer, parent);
+  dialog.resize(dialog.width() * scale, dialog.height() * scale);
 
   connect(&dialog, SIGNAL(resetDialogs()), this, SLOT(resetDialogs()));
 

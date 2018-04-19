@@ -135,6 +135,7 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <QRect>
 #include <QRegExp>
 #include <QResizeEvent>
+#include <QScreen>
 #include <QSettings>
 #include <QScopedPointer>
 #include <QSizePolicy>
@@ -205,6 +206,7 @@ MainWindow::MainWindow(QSettings &initSettings
   , m_DidUpdateMasterList(false)
   , m_ArchiveListWriter(std::bind(&MainWindow::saveArchiveList, this))
 {
+  m_UiScale = QGuiApplication::primaryScreen()->logicalDotsPerInch() / qreal(96);
   QWebEngineProfile::defaultProfile()->setPersistentCookiesPolicy(QWebEngineProfile::NoPersistentCookies);
   QWebEngineProfile::defaultProfile()->setHttpCacheMaximumSize(52428800);
   QWebEngineProfile::defaultProfile()->setCachePath(m_OrganizerCore.settings().getCacheDirectory());
@@ -241,6 +243,10 @@ MainWindow::MainWindow(QSettings &initSettings
 
   updateProblemsButton();
 
+  QSize newSize;
+  newSize.setHeight(ui->toolBar->iconSize().height() * m_UiScale);
+  newSize.setWidth(ui->toolBar->iconSize().width() * m_UiScale);
+  ui->toolBar->setIconSize(newSize);
   updateToolBar();
 
   TaskProgressManager::instance().tryCreateTaskbar();
@@ -309,6 +315,10 @@ MainWindow::MainWindow(QSettings &initSettings
 
   ui->savegameList->installEventFilter(this);
   ui->savegameList->setMouseTracking(true);
+
+  ui->categoriesList->setMaximumWidth(ui->categoriesList->maximumWidth() * m_UiScale);
+
+  ui->executablesListBox->setMinimumHeight(ui->executablesListBox->minimumHeight() * m_UiScale);
 
   // don't allow mouse wheel to switch grouping, too many people accidentally
   // turn on grouping and then don't understand what happened
@@ -673,6 +683,7 @@ size_t MainWindow::checkForProblems()
 void MainWindow::about()
 {
   AboutDialog dialog(m_OrganizerCore.getVersion().displayString(), this);
+  dialog.resize(dialog.width() * m_UiScale, dialog.height() * m_UiScale);
   connect(&dialog, SIGNAL(linkClicked(QString)), this, SLOT(linkClicked(QString)));
   dialog.exec();
 }
@@ -2466,7 +2477,8 @@ void MainWindow::displayModInformation(ModInfo::Ptr modInfo, unsigned int index,
     }
   } else {
     modInfo->saveMeta();
-    ModInfoDialog dialog(modInfo, m_OrganizerCore.directoryStructure(), modInfo->hasFlag(ModInfo::FLAG_FOREIGN), &m_OrganizerCore, &m_PluginContainer,this);
+    ModInfoDialog dialog(modInfo, m_OrganizerCore.directoryStructure(), modInfo->hasFlag(ModInfo::FLAG_FOREIGN), &m_OrganizerCore, &m_PluginContainer, this);
+    dialog.resize(dialog.width() * m_UiScale, dialog.height() * m_UiScale);
     connect(&dialog, SIGNAL(linkActivated(QString)), this, SLOT(linkClicked(QString)));
     connect(&dialog, SIGNAL(downloadRequest(QString)), &m_OrganizerCore, SLOT(downloadRequestedNXM(QString)));
     connect(&dialog, SIGNAL(modOpen(QString, int)), this, SLOT(displayModInformation(QString, int)), Qt::QueuedConnection);

@@ -368,6 +368,8 @@ private:
 
   MOBase::DelayedFileWriter m_ArchiveListWriter;
 
+  qreal m_UiScale = 1;
+
   enum class ShortcutType {
     Toolbar,
     Desktop,
