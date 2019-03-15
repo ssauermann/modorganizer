@@ -36,6 +36,11 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <Shellapi.h>
 
 #include <boost/scoped_array.hpp>
+#include <boost/interprocess/sync/named_recursive_mutex.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <ShlObj.h>
+#include <comutil.h>
+#include <comdef.h>
 
 using namespace MOBase;
 using namespace MOShared;
@@ -141,6 +146,8 @@ HANDLE startBinary(const QFileInfo &binary,
   std::wstring binaryName = ToWString(QDir::toNativeSeparators(binary.absoluteFilePath()));
   std::wstring currentDirectoryName = ToWString(QDir::toNativeSeparators(currentDirectory.absolutePath()));
 
+  boost::interprocess::named_recursive_mutex::remove("__hook_context_mutex");
+
   try {
     if (!spawn(binaryName.c_str(), ToWString(arguments).c_str(), currentDirectoryName.c_str(),
                true, hooked, stdOut, stdErr, processHandle, threadHandle)) {
@@ -182,4 +189,19 @@ HANDLE startBinary(const QFileInfo &binary,
 
   ::CloseHandle(threadHandle);
   return processHandle;
+}
+
+void __cdecl boost::interprocess::ipcdetail::get_shared_dir(std::string &shared_dir)
+{
+  PWSTR path;
+  if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_ProgramData, 0, NULL, &path))) {
+    _bstr_t bPath(path);
+    shared_dir = (char*)bPath;
+    shared_dir += "\\USVFS";
+  } else {
+    shared_dir = "C:\\ProgramData\\USVFS";
+  }
+  boost::filesystem::path boostPath(shared_dir);
+  if (!boost::filesystem::exists(boostPath))
+    boost::filesystem::create_directories(boostPath);
 }

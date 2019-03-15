@@ -114,7 +114,7 @@ QString ModInfo::getContentTypeName(int contentType)
   }
 }
 
-void ModInfo::createFromOverwrite(PluginContainer *pluginContainer, 
+void ModInfo::createFromOverwrite(PluginContainer *pluginContainer,
                                   MOShared::DirectoryEntry **directoryStructure)
 {
   QMutexLocker locker(&s_Mutex);
